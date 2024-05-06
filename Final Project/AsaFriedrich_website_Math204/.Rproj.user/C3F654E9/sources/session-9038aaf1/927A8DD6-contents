@@ -1,0 +1,273 @@
+---
+title: "NFL Draft Value"
+description: 
+     A look at the NFL Draft and the occurance of star players 
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+  
+
+```{r}
+# install.packages("devtools")
+# devtools::install_github("rmcurtis43/combineR")
+# install.packages("nflreadr")
+# remotes::install_github("rstudio/htmltools")
+# install.packages("htmltools")
+# install.packages("tidyverse")
+#install.packages("ggcorrplot")
+#devtools::install_github("ricardo-bion/ggradar", dependencies = TRUE)
+#install.packages("ggwordcloud")
+
+library("ggradar")
+library("nflreadr")
+library("ggplot2")
+library("tidyverse")
+library("ggcorrplot")
+library("ggwordcloud")
+```
+
+
+```{r}
+Draftday <- load_draft_picks(seasons = c(1980:2014))
+Draftday <- subset(Draftday, select = -c(gsis_id,pfr_player_id,cfb_player_id,car_av,hof))
+Draftday <- drop_na(Draftday, c(dr_av,w_av))
+Draftday <- filter(Draftday, round <= 7)
+
+Draftday <- Draftday %>%
+  group_by(category) %>%
+  mutate(
+    Group = case_when(
+      category %in% c("RB", "WR", "QB", "TE") ~ "Skill",
+      category %in% c("OL") ~ "O-Line",
+      category %in% c("DB") ~ "Secondary",
+      category %in% c("DL", "LB") ~ "D-Line",
+      category %in% c("P", "K") ~ "SpecialT",
+      TRUE ~ "Other"
+    )
+  )
+
+Draftday <- Draftday %>%
+  mutate(team = if_else(team == "OAK", "RAI", team))
+Draftday <- Draftday %>%
+  mutate(team = if_else(team == "STL", "RAM", team))
+Draftday <- Draftday %>%
+  mutate(team = if_else(team == "PHO", "ARI", team))
+
+Draftday <- Draftday %>%
+  group_by(team) %>%
+  mutate(
+    Division = case_when(
+      team %in% c("BUF", "MIA", "NYJ", "NWE") ~ "AFC-EAST",
+      team %in% c("BAL","CLE","PIT","CIN") ~ "AFC-NORTH",
+      team %in% c("HOU","JAX","IND","TEN") ~ "AFC-SOUTH",
+      team %in% c("KAN", "RAI","DEN","SDG") ~ "AFC-WEST",
+      team %in% c("DAL", "PHI","NYG","WAS") ~ "NFC-EAST",
+      team %in% c("DET","GNB","MIN","CHI") ~ "NFC-NORTH",
+      team %in% c("TAM","NOR","ATL","CAR") ~ "NFC-SOUTH",
+      team %in% c("SFO","RAM","SEA","ARI") ~ "NFC-WEST",
+      TRUE ~ "Other"
+    )
+  )
+
+attach(Draftday)
+
+team_colors <- c(
+  "ARI" = "#97233F" ,
+  "ATL" = "#A5ACAF",
+  "BAL" = "#241773",
+  "BUF" = "#00338D",
+  "CAR" = "#0085CA",
+  "CHI" = "#E94800",
+  "CIN" = "#FB4F14",
+  "CLE" = "#311D00",
+  "DAL" = "#7F9695",
+  "DEN" = "#002244",
+  "DET" = "#0076B6",
+  "GNB" = "#203731",
+  "HOU" = "#A71930",
+  "IND" = "#002C5F",
+  "JAX" = "#9F792C",
+  "KAN" = "#E31837",
+  "RAI" = "#000000",
+  "SDG" = "#FFC20E",
+  "RAM" = "#003594",
+  "MIA" = "#008E97",
+  "MIN" = "#4F2683",
+  "NWE" = "#C60C30",
+  "NOR" = "#D3BC8D",
+  "NYG" = "#0B2265",
+  "NYJ" = "#125740",
+  "PHI" = "#4CBB17",
+  "PIT" = "#FFB612",
+  "SFO" = "#AA0000",
+  "SEA" = "#69BE28",
+  "TAM" = "#D50A0A",
+  "TEN" = "#A2AAAD",
+  "WAS" = "#5A1414"
+)
+
+group_colors <- c("Skill" = "#FF7312", 
+                  "O-Line" = "#DD5AE6", 
+                  "D-Line" = "#69CEF5",
+                  "Secondary" = "#000000", 
+                  "SpecialT" = "#9A9A9A")
+
+base_palette <- c("#311D00","#A2AAAD","#FFC20E","#0085CA","#4CBB17","#4F2683", "#E94800" )
+
+```
+
+
+_For NFL fans, the Draft offers the chance for a franchise player to come along or utter disappointment when your team takes somebody they believe will not pan out. Since 1994, the league has had the draft as we know it today, 7 rounds of 32 players, for teams to pick players who have finished their time in the NCAA. How drafts are remembered is largely shaped by the stars from that year and almost every year there is a player taken in a late round that shocks the league._
+
+I chose to look at every draft between 1980 and 2014 as it is the largest time frame for players who have played a full career. 
+
+Created by PFR founder Doug Drinen, the Approximate Value (AV) method is an attempt to put a single number on the seasonal value of a player at any position from any year (since 1960). The way Drinen described the intent of this measurement was:
+
+"AV is not meant to be a be-all end-all metric. Football stat lines just do not come close to capturing all the contributions of a player the way they do in baseball and basketball. If one player is a 16 and another is a 14, we can't be very confident that the 16AV player actually had a better season than the 14AV player. But I am pretty confident that the collection of all players with 16AV played better, as an entire group, than the collection of all players with 14AV."
+
+"Essentially, AV is a substitute for --- and a significant improvement upon, in my opinion --- metrics like 'number of seasons as a starter' or 'number of times making the pro bowl' or the like. You should think of it as being essentially like those two metrics, but with interpolation in between. That is, 'number of seasons as a starter' is a reasonable starting point if you're trying to measure, say, how good a particular draft class is, or what kind of player you can expect to get with the #13 pick in the draft. But obviously some starters are better than others. Starters on good teams are, as a group, better than starters on bad teams. Starting WRs who had lots of receiving yards are, as a group, better than starting WRs who did not have many receiving yards. Starters who made the pro bowl are, as a group, better than starters who didn't, and so on. And non-starters aren't worthless, so they get some points too."
+
+From https://www.pro-football-reference.com/about/approximate_value.htm
+
+
+### Value by Round
+
+When looking at the past draft I decided to not include players who had a approximate value of 0 (and the two players with a negative value) as it indicates that they either did not make a roster following the draft or never received playing time. SO as we look at the draft throughout the year the output in the NFL follows the trend we would expect. 
+
+```{r}
+
+ggplot(Draftday[w_av > 0,], aes(x= round, y= w_av, fill = factor(round)))+
+  geom_boxplot()+
+  xlab("Rounds")+
+  ylab("Approx. Value")+
+  theme_gray()+
+  ggtitle("Career Approximate Value of Draft Rounds")+
+  scale_x_continuous(labels = c("1st", "2nd", "3rd ", "4th ", "5th ", "6th ", "7th "), 
+                   breaks = c(1,2,3,4,5,6,7))
+  
+```
+
+As expected, the production and value of players falls on average throughout the rounds of the draft. This makes sense since NFL teams on average are able to predict the value and potential to start of players coming out of college. However, we can also see that every single round of the draft has a large number of high outliers. Players fall in the draft for a variety of reasons including injury, college portfolio, positional needs, and of the field issues. Every year there are players who are labeled steals since they are taking far later than projected in the past. 
+
+<br> 
+
+
+I also decided to look at the draft based on larger positional groupings which are categorized into Skill players, Offensive Line, Defensive Line, Secondary, and Special Teams. This line graph further reinforces what we saw with the box plots as the approximate value of players falls rapidly from the first pick to the middle of the second round the flattens out much more. We can also see the difference between position groups in the later rounds with the offensive line significantly outperforming in terms of late round value. Another key thing to note is that most special teams player (kickers and punters) are only taken in rounds 6 or 7 when taken in the draft so the curve is not as representative when compared to the other positional groups. 
+
+
+```{r}
+ggplot(Draftday[w_av > 0,], aes(color = factor(Group)))+
+  geom_smooth(aes(x = pick, y = w_av), se = FALSE)+
+  theme_classic()+
+  scale_colour_manual(values = group_colors)+
+  scale_x_continuous(labels = c("1st", "2nd", "3rd ", "4th ", "5th ", "6th ", "7th "), 
+                   breaks = c(32,64,96,128,160,192,224))+
+  ggtitle("Average Approx. Value across Group and Round")+
+  ylab("Career Approx. Value")+
+  xlab("Round")
+```
+### Overall Value of the Draft
+
+<br>
+
+Another way to look at the draft is how it has varied over the years. Different years are looked back on as offensive or defensive drafts based on the star players that were picked during those years. One clear year is the 2001 Draft which included players such as Drew Brees, Reggie Wayne, and LaDainian Tomlinson who are considered some of the greatest players of all time at their offensive positions and we can see that in how much of the total approximate value is made up of the _Skill Players_ group.
+
+```{r}
+ggplot()+
+geom_col(data = Draftday, aes(y = w_av, x = season, fill = factor(Group)))+
+  scale_fill_manual(values = group_colors)+
+  ggtitle("Total Approximate Value by Draft Class")+
+  ylab("Total Approx. Value")+
+  xlab("Draft Class)")+
+  theme_bw()
+```
+It is also important to note that the approximate value of the draft has increased on average throughout the time period. This is largely due to the creation of new franchises such as the Titans, Texans, and Cardinals. The introduction of new teams means more players are drafted and there are more starting spots across the league. 
+
+
+<br>
+
+### Team Draft Dashboard
+
+<iframe class="l-screen-inset shaded" height="1000px" src="https://asafriedrich.shinyapps.io/NFLDivision/" ></iframe>
+
+
+
+## Star Power
+
+In order for a player to be considered a generational talent, in this case, they should end their career which an approximate value above 95 as that puts them in the top 1% of all players drafted into the NFL. These players make up most of the first team all-pro selections which is the highest accolade in the NFL outside of the end of season awards such as MVP. I found it important to look at these players since they are the outliers which heavily impact the approximate career value which found earlier. 
+
+<br>
+
+As we look at these players it still follows a trend similar to the overall NFL draft as players are indentified in college and therefore teams will make sure to take them in the first round. 
+
+```{r}
+ggplot(Draftday[ w_av > 95,], aes(x = pick, y = w_av, color = Group))+
+  geom_jitter()+
+  scale_colour_manual(values = group_colors)+
+  scale_x_continuous(labels = c("1st", "2nd", "3rd ", "4th ", "5th ", "6th ", "7th "), 
+                   breaks = c(0,32, 64, 96, 128, 160, 192))+
+  theme(axis.text.x = element_text(size = 8, angle = -5), axis.title.x = element_text(vjust = 0))+
+  xlab("Draft Round")+
+  ylab("Career AV")+
+  theme_minimal()+
+  ggtitle("Star Players Across the Rounds")
+
+```
+
+<br>
+
+
+But when we breakdown the draft by season we see that the appearance of players of this caliber is fairly common across the years. A good way to test if your a real fan is too see if you know these players based on their draft year and team. 
+
+```{r}
+ggplot()+
+  geom_jitter(data = Draftday[ w_av > 95,], aes(x = season, y = w_av, color = team))+
+  scale_colour_manual(values = team_colors)+
+  xlab("Draft Year")+
+  ylab("Career AV")+
+  theme_minimal()+
+  ggtitle("Star Players Distributed by Draft Year")
+
+
+```
+
+Another source of pride for fans of football at all levels is if their college has produced any star players in the NFL. It is also important to once again note that this data is based on players drafted between 1980 and 2014 so the schools that are dominating the CFB currently such as Georgia, Alabama, and Clemson will not appear as large in this world cloud. The size of the school's name represent the number of all pro selections which players from the school have received. 
+
+
+```{r}
+Allpro <- Draftday %>%
+  group_by(college) %>%
+  summarize(allpro = sum(allpro))
+
+ggwordcloud(Allpro$college,Allpro$allpro, min.freq = 5)
+```
+
+<br>
+
+
+```{r}
+ggplot()+
+  geom_histogram(data = Draftday[w_av > 95,],aes(x = allpro, fill = Group), bins = 30)+
+  scale_fill_manual(values = group_colors)+
+  coord_radial()+
+  theme_minimal()+
+  scale_x_continuous(breaks = c(0,1,2,3,4,5,6,7,8,9,10,11,12))+
+  ggtitle("Amount of All-Pro Selections per Player")+
+  xlab("All-Pro Selections")+
+  ylab("Count of Players")
+  
+
+```
+
+This final histogram gives a good sense of how difficult it is to receive an all-pro selection as there are 17 players who had careers valued in the top 1% of all players who never received an all-pro accolade. Otherwise, it is expected that the largest category would be players with one selection as you have to be the single best player in your position for that season. But, as would be expected from players who are some of the best to ever play in their respective positions most have multiple selections as they were not one season wonders. 
+
+
+## Final Takeaway
+
+As we can see the First Round produces talented and exceptional players at a rate far higher than the rest of the draft. This is why it is largely used on Skill positions such as QB, RB, and WR and they will have to quickest and largest impact on a team's success. It is also clear that teams are more likely to find necessary plays to fill the offensive and defensive line later in the draft as the approximate value of those groups does not fall as steeply throughout the draft. However, when it comes to find players that define their position it is a little more ambiguous but they will most likely come in the first round. There have been players from smaller schools who are incredibly successful in the NFL such as Ben Rothleisburger and Randy Moss. The popularity of Undrafted Free Agents (UDFA) has also increased dramatically since the early 2000's and more players from small schools have been signed by teams after the draft and made rosters. 

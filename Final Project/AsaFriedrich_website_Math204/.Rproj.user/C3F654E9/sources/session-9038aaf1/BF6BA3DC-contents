@@ -1,0 +1,115 @@
+---
+title: "Past Course Visualizations"
+description: 
+     Select course work from Math 230 which we created throughout the semester 
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 2
+---
+
+## Generative Art Work
+
+We used the `aRtsy` package to create different pieces of generative art which are created through algorithims.  
+
+![Generative Piece #1](GenaRt_1.png)
+*Handkerchiefs*
+
+![Generative Piece #2](GenaRt_2.png)
+*Bucknell Kaleidoscope*
+
+![Generative Piece #3](GenaRt_3.png)
+*Neural Network*
+
+
+## Confidence Levels - Shiny App
+
+<iframe class="l-screen-inset shaded" height="1000px" src="https://abby-flynt.shinyapps.io/Asa-Devin-Logan-SP24/" ></iframe>
+
+We created a shiny app intended to explain the building blocks of a confidence interval to beginner statistics students with the help of interactive visualizations. 
+
+## GGplot Extenstion Project - GGradar
+```{r,echo=FALSE}
+# devtools::install_github("ricardo-bion/ggradar", 
+#                           dependencies = TRUE)
+# install.packages("Lahman")
+# library(ggradar)
+# library(ggplot2)
+# library(dplyr)
+# library(scales)
+# library(tibble)
+# library(Lahman)
+# data("Batting")
+# attach(Batting)
+# #Aaron Judge 2022: 111263
+# #Barry Bonds 2001: 80769
+# #Ted Williams 1949: 34458
+# #Mike trout 2016: 102714
+# #Mookie Betts 2018: 104454
+# #Xander Bogaerts: 110667
+# MVPs = battingStats(Batting[c(34458, 80769, 102714, 104454, 110667, 111263),])
+# MVPs[,"Adj. OPS"] = MVPs[,28]/1.422
+# MVPs[,"1B"]= MVPs[,9]-(MVPs[,10]+MVPs[,11]+MVPs[,12])
+# MVPs[,"playerID"] = c("Ted Williams","Barry Bonds","Mike Trout","Mookie Betts","Not MVP", "Aaron Judge")
+# 
+# ggradar(MVPs[6,c(1,10,11,12,31)],
+#         grid.min = 0,
+#         grid.mid= (177/4),
+#         grid.max = 90, 
+#         plot.title = "Aaron Judge MVP Season Hits",
+#         fill = TRUE,
+#         font.radar = "mono")
+```
+![Aaron Judge - GGradar](AaronJbat.png)
+#### Aaron Judge MVP Batting
+I used baseball data from the Lahman package to display the `ggradar` package which creates spider/radar graphs. In this case I made the max range for the graph Judge's number of singles on the season since it was his highest hit count out of the 4 types. It also helps to display how many HR's he had during that season (62). 
+
+## Favorite Classwork 
+
+```{r, echo=FALSE}
+# load("MATH230_Exam1_Data.RData")
+# library(ggplot2)
+# library(ggridges)
+# ses.low = c(mean(read[ses == "low"]), mean(write[ses == "low"]), mean(math[ses == "low"]), mean(science[ses == "low"]), mean(socst[ses == "low"]))
+# ses.middle = c(mean(read[ses == "middle"]), mean(write[ses == "middle"]), mean(math[ses == "middle"]), mean(science[ses == "middle"]), mean(socst[ses == "middle"]))
+# ses.high = c(mean(read[ses == "high"]), mean(write[ses == "high"]), mean(math[ses == "high"]), mean(science[ses == "high"]), mean(socst[ses == "high"]))
+# ses.rep = factor(rep(levels(ses), each = 5), levels = c("low", "middle", "high"), ordered = TRUE)
+# subject.rep = rep(c("reading", "writing", "math", "science", "social studies"), times = 3)
+# scores = c(ses.low, ses.middle, ses.high)
+# 
+# new.df = data.frame(ses.rep, subject.rep, scores)
+# 
+# #change colors to no longer be on red/green scale and more likely to be seen by somebody with colorblindness
+# #change y-axis title and create chart title
+# #legend scale and title?
+# ggplot(new.df, aes(x = scores, y = ses.rep, group = subject.rep, shape = subject.rep)) + 
+#   geom_point(aes(color = subject.rep)) + 
+#   geom_line(aes(color = subject.rep), show.legend = FALSE)+
+#   ylab("socioeconmic status")+
+#   xlab("standardized test scores")+
+#   ggtitle("Student test scores and Socioeconomic Status")+
+#   theme(legend.title.align = 0.5)+
+#   guides(shape=guide_legend(title="School Subject"))+
+#   scale_color_discrete(name = "School Subject")
+```
+![Classwork #1](Exam 1 Graph.png)
+#### Test Score Straws
+We create a combined line plot and dot plot to display the difference's across test scores and subjects based on socioeconomic status. We used the `Lock5Data` package for to create these data points. It was also one our first times play with colors and shapes inside ggplot. We changed to points to be different shapes & colors for each subject. We can see from this visualization that low eceonomic status creates the largest spread between test scores given the spread between 47.5 and ~50.5 of the different subjects. 
+
+
+
+```{r, echo = FALSE}
+# library(ggplot2)
+# # library(Hmisc)
+# # library(hexbin)
+# # library(ggmosaic)
+# library(Lock5Data)
+# data(StudentSurvey)
+# ggplot(StudentSurvey, aes(MathSAT, VerbalSAT)) + 
+#   stat_density_2d(aes(fill = after_stat(level)), geom = "polygon", color = "grey", h = c(50, 50)) + 
+#   scale_fill_distiller(palette = "Spectral")
+```
+![Classwork#2](ggplot_ext.png)
+SAT Scores
+
+This density plot shows the intersections of students verbal and math SAT scores from the Lock5Data set. We can see from this plot that the intersection of most students scores is at around 550 and 600 showing that that is the highest average for both sections of the test for any given student. We can also see that almost no students recieved perfect score's in both categories with the density plot not reaching all up to the top right. 

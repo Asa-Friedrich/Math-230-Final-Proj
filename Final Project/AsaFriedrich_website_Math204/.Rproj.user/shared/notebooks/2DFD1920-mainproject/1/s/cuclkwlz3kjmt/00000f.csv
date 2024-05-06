@@ -1,0 +1,23 @@
+"0","AllWRs<- Draftday[Draftday$position == ""WR"",]"
+"0",""
+"0","attach(AllWRs)"
+"2","The following objects are masked from AllRBs:
+
+    age, allpro, category, college, def_ints, def_sacks, def_solo_tackles, dr_av, games,
+    pass_attempts, pass_completions, pass_ints, pass_tds, pass_yards, pfr_player_name,
+    pick, position, probowls, rec_tds, rec_yards, receptions, round, rush_atts, rush_tds,
+    rush_yards, season, seasons_started, side, team, to, w_av
+
+"
+"2","The following objects are masked from QBs:
+
+    age, allpro, category, college, def_ints, def_sacks, def_solo_tackles, dr_av, games,
+    pass_attempts, pass_completions, pass_ints, pass_tds, pass_yards, pfr_player_name,
+    pick, position, probowls, rec_tds, rec_yards, receptions, round, rush_atts, rush_tds,
+    rush_yards, season, seasons_started, side, team, to, w_av
+
+"
+"0","ggplot(AllWRs, aes(x = round,y = rec_yards))+"
+"0","  geom_point()+"
+"0","  geom_smooth()+"
+"0","  scale_x_reverse()"

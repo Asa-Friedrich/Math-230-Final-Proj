@@ -1,0 +1,11 @@
+"0","ggplot(Draftday[w_av > 0,], aes(color = factor(Group)))+"
+"0","  geom_smooth(aes(x = pick, y = w_av), se = FALSE)+"
+"0","  theme_classic()+"
+"0","  scale_colour_manual(values = group_colors)+"
+"0","  scale_x_continuous(labels = c(""1st"", ""2nd"", ""3rd "", ""4th "", ""5th "", ""6th "", ""7th ""), "
+"0","                   breaks = c(32,64,96,128,160,192,224))+"
+"0","  ggtitle(""Average Approx. Value across Position and Round"")+"
+"0","  ylab(""Career Approx. Value"")+"
+"0","  xlab(""Round"")"
+"1","[38;5;232m`geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = ""cs"")'[39m
+"

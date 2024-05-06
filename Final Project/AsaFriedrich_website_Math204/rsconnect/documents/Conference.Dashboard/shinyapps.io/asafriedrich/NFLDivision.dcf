@@ -1,0 +1,12 @@
+name: NFLDivision
+title: NFLDivision
+username: asafriedrich
+account: asafriedrich
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 11938994
+bundleId: 8578955
+url: https://asafriedrich.shinyapps.io/NFLDivision/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

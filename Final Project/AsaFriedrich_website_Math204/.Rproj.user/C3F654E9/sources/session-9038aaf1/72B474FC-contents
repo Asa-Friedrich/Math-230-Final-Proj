@@ -1,0 +1,14 @@
+name: "AsaFriedrich_website_Math204"
+title: "Final Project Website"
+description: |
+  Final Project Website
+output_dir: "docs"
+navbar:
+  right:
+    - text: "Home"
+      href: index.html
+    - text: "Math 230 Visualizations"
+      href: pastwork.html
+    - text: "Final Project"
+      href: mainproject.html
+output: distill::distill_article
